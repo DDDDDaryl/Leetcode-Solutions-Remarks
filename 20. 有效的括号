@@ -1,0 +1,58 @@
+#include <iostream>
+#include <chrono>
+#include <vector>
+
+using namespace std;
+using namespace chrono;
+
+class solution{
+public:
+    /*Bug: Ignored the case where pop appears before push.*/
+    /*Bug: illegal reach of memory.*/
+    static bool isValid(string s) {
+        if(!s.empty()){
+            if(*s.begin() == ')' || *s.begin() == ']' || *s.begin() == '}') return false;
+            vector<char> stack;
+            for(auto c:s){
+                if(c == '[' || c == '(' || c == '{') stack.push_back(c);
+                else if(c == ')'){
+                    if(!stack.empty() && stack.back() == '(') stack.pop_back();
+                    else return false;
+                }
+                else if(c == ']'){
+                    if(!stack.empty() && stack.back() == '[') stack.pop_back();
+                    else return false;
+                }
+                else if(c == '}'){
+                    if(!stack.empty() && stack.back() == '{') stack.pop_back();
+                    else return false;
+                }
+            }
+            return stack.empty();
+        }else return true;
+
+    }
+};
+
+int main(){
+    vector<int> nums{};
+    vector<string> test = {
+            "",
+            "()[]{}",
+            "()))",
+            "((()",
+            "([)]",
+            "]"
+    };
+    auto start = system_clock::now();
+    for(const auto &t:test) cout<<solution::isValid(t)<<endl;
+    auto end = system_clock::now();
+    auto duration =
+            duration_cast<microseconds>(end-start);
+    cout<<"Program spent "
+        <<duration.count()
+        <<" us"
+        <<endl;
+    return 0;
+}
+
