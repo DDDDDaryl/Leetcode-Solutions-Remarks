@@ -4,7 +4,10 @@
 
 using namespace std;
 using namespace chrono;
-
+/* 大佬们的优化：
+* 其实可以增加一个判断：如果栈的深度大于字符串长度的1/2，就返回false。因为当出现这种情况的时候，即使后面的全部匹配，栈也不会为空。
+* 先增加一个字符串长度的奇偶判断 s.length()&1 ，奇数直接返回false
+*/
 class solution{
 public:
     /*Bug: Ignored the case where pop appears before push.*/
