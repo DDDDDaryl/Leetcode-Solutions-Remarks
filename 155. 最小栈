@@ -1,0 +1,114 @@
+#include <iostream>
+#include <chrono>
+#include <vector>
+#include <algorithm>
+#include <deque>
+#include <list>
+#include <forward_list>
+#include <array>
+#include <stack>
+using namespace std;
+using namespace chrono;
+
+/*设计一个支持 push ，pop ，top 操作，并能在常数时间内检索到最小元素的栈。
+
+push(x) —— 将元素 x 推入栈中。
+pop() —— 删除栈顶的元素。
+top() —— 获取栈顶元素。
+getMin() —— 检索栈中的最小元素。
+
+来源：力扣（LeetCode）
+链接：https://leetcode-cn.com/problems/min-stack
+著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。*/
+
+/*不出意料的是，果然有人直接用了stack 适配器，做个包装巨简单*/
+
+class MinStack {
+    /*Some special occasions:
+     * push()
+     * pop() when stack is empty.
+     * top() when stack is empty.
+     * getMin() when stack is empty || mathematically equaled elements || minimum element popped.*/
+    /*Solution:
+     * Each element records the minimum before it is pushed.*/
+public:
+    /** initialize your data structure here. */
+    MinStack() {
+        stackMin = 0;
+    }
+
+    void push(int x) {
+        if(!stack.empty()){
+            stack.push_back({x, stackMin});
+            stackMin = x<stackMin?x:stackMin;
+        }
+        else{
+            stackMin = x;
+            stack.push_back({x, stackMin});
+        }
+
+    }
+
+    void pop() {
+        if(!stack.empty()){
+            stackMin = stack.back()[1];
+            stack.pop_back();
+        }
+        else cerr<<"Stack empty, illegal pop()!"<<endl;
+    }
+
+    int top() {
+        if(!stack.empty()) return stack.back()[0];
+        else{
+            cerr<<"Stack empty, illegal top()!"<<endl;
+            return -1;
+        }
+    }
+
+    int getMin() {
+        if(!stack.empty()) return stackMin;
+        else{
+            cerr<<"Stack empty, illegal getMin()!"<<endl;
+            return -1;
+        }
+    }
+private:
+    deque<array<int, 2>> stack;
+    int stackMin;
+};
+
+/**
+ * Your MinStack object will be instantiated and called as such:
+ * MinStack* obj = new MinStack();
+ * obj->push(x);
+ * obj->pop();
+ * int param_3 = obj->top();
+ * int param_4 = obj->getMin();
+ */
+
+int main(){
+
+    auto start = system_clock::now();
+    /*============================API call============================*/
+    auto *minStack = new MinStack();
+    minStack->push(-2);
+    minStack->pop();
+    minStack->pop();
+    minStack->push(0);
+    minStack->push(-3);
+    cout<<minStack->getMin()<<endl;   //--> 返回 -3.
+    minStack->pop();
+    cout<<minStack->top()<<endl;      //--> 返回 0.
+    cout<<minStack->getMin()<<endl;   //--> 返回 -2.
+
+    /*========================end of API call=========================*/
+    auto end = system_clock::now();
+    auto duration =
+            duration_cast<microseconds>(end-start);
+    cout<<"Program spent "
+        <<duration.count()
+        <<" us"
+        <<endl;
+    return 0;
+}
+
