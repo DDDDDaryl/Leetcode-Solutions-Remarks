@@ -1,0 +1,98 @@
+#include <iostream>
+#include <chrono>
+#include <vector>
+#include <algorithm>
+#include <deque>
+#include <list>
+#include <forward_list>
+#include <array>
+#include <stack>
+#include <map>
+using namespace std;
+using namespace chrono;
+
+/*根据每日 气温 列表，请重新生成一个列表，对应位置的输出是需要再等待多久温度才会升高超过该日的天数。如果之后都不会升高，请在该位置用 0 来代替。
+
+例如，给定一个列表 temperatures = [73, 74, 75, 71, 69, 72, 76, 73]，你的输出应该是 [1, 1, 4, 2, 1, 1, 0, 0]。
+
+提示：气温 列表长度的范围是 [1, 30000]。每个气温的值的均为华氏度，都是在 [30, 100] 范围内的整数。
+
+来源：力扣（LeetCode）
+链接：https://leetcode-cn.com/problems/daily-temperatures
+著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。*/
+
+/*Target: To find the index of the first larger number on the right and return the distance between these two indices, if not any, return 0.
+ * brutal solution: for each i in T, go through the rest until we find the answer.
+ * The time complexity will be O(N^2), space complexity will be O(N)
+ *
+ * optimize: 曲线上升段都是1，最后一段曲线下降段都是0，第一个到倒数第二个下降段需要计算
+ *          一旦出现下降趋势，温度和天数入栈，下一个温度回升时，与栈顶比较，大于则出栈并赋值
+ *          直到最后未出栈的为0*/
+
+class Solution {
+public:
+    static vector<int> dailyTemperatures(vector<int>& T) {
+        stack<pair<int, int>> stak;
+        vector<int> daysUntil(T.size());
+        const auto head = T.cbegin();
+        auto it = ++T.cbegin();
+        pair<int, int> TYesterday{T.front(), 0};
+        for(; it!=T.cend(); ++it){
+            if(*it > TYesterday.first){
+                daysUntil[it-head-1] = 1;
+                while(!stak.empty() && *it > stak.top().first){
+                    daysUntil[stak.top().second] = it-head-stak.top().second;
+                    cout<<"Days until: "<<it-head<<endl;
+                    stak.pop();
+                }
+            }
+            else if(*it <= TYesterday.first) stak.emplace(TYesterday);
+            TYesterday = {*it, it-head};
+
+            cout<<"stackSize = "<<stak.size()<<endl;
+
+        }
+        while(!stak.empty()){
+            daysUntil[TYesterday.second] = 0;
+            stak.pop();
+        }
+        return daysUntil;
+    }
+};
+
+int main(){
+    /*===========================Test case============================*/
+    vector<vector<int>> testCases;
+    testCases.push_back({73, 74, 75, 71, 69, 72, 76, 73});
+    testCases.push_back({30, 31, 32});
+    testCases.push_back({30, 32, 31});
+    testCases.push_back({32, 31, 30});
+    testCases.push_back({32, 32, 32});
+    /*========================End test case===========================*/
+    auto start = system_clock::now();
+    /*============================API call============================*/
+    for(auto ex:testCases){
+        for(auto &ans:Solution::dailyTemperatures(ex)){
+            cout<<ans<<' ';
+        }
+        cout<<endl;
+    }
+
+    /*========================End of API call=========================*/
+    auto end = system_clock::now();
+    auto duration =
+            duration_cast<microseconds>(end-start);
+    cout<<"Program spent "
+        <<duration.count()
+        <<" us"
+        <<endl;
+    return 0;
+}
+
+//========================================分割线=========================================
+
+以上代码的效率看起来极低。。。
+看了一小圈答案，用栈来解的基本都是同样的思路，不过我的解法相当于做了小的优化
+P.S. Leetcode上的时间是假的。。
+
+
