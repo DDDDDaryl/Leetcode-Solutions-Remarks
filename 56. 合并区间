@@ -1,0 +1,108 @@
+#include <iostream>
+#include <chrono>
+#include <vector>
+#include <algorithm>
+#include <deque>
+#include <list>
+#include <forward_list>
+#include <array>
+#include <stack>
+#include <map>
+using namespace std;
+using namespace chrono;
+
+/*给出一个区间的集合，请合并所有重叠的区间。
+
+示例 1:
+
+输入: [[1,3],[2,6],[8,10],[15,18]]
+输出: [[1,6],[8,10],[15,18]]
+解释: 区间 [1,3] 和 [2,6] 重叠, 将它们合并为 [1,6].
+示例 2:
+
+输入: [[1,4],[4,5]]
+输出: [[1,5]]
+解释: 区间 [1,4] 和 [4,5] 可被视为重叠区间。
+
+来源：力扣（LeetCode）
+链接：https://leetcode-cn.com/problems/merge-intervals
+著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。*/
+
+/*Merge? How?
+ * 合并的意思是找到外围区间，找到相互重叠的部分
+ * -重叠有什么特征？
+ * --闭合区间，A=[a, b], B=[c, d]
+ *              a<=b, c<=d
+ * --  A includes B: a<=c && b>=d
+ * --  A and B overlap: a<c && c<=b<d
+ * --  A and B separate: b<c
+ * --  A equals B: a=c, b=d
+ *
+ * Imagine an axis x. Stack all these intervals on the axis, what happens?
+ * */
+
+class Solution {
+public:
+    static vector<vector<int>> merge(vector<vector<int>>& intervals) {
+        if(intervals.empty()) {
+            return {};
+        }
+        for(const auto& check:intervals){
+            if(check.empty()) return {};
+        }
+        vector<vector<int>> ans;
+        stable_sort(intervals.begin(), intervals.end(), less<vector<int>>());
+        int lp = intervals.front()[0];
+        int rp = intervals.front()[1];
+        for(auto &intv:intervals){
+            //有重叠但不包含
+            if(lp <= rp && intv[0] <= rp && intv[1] >= rp) rp = intv[1];
+            //当前区间包含输入区间 什么都不做
+            //不重叠
+            else if(lp <= rp && intv[0] > rp){
+                ans.push_back({lp, rp});
+                lp = intv[0];
+                rp = intv[1];
+            }
+        }
+        if(lp <= rp) ans.push_back({lp, rp});
+        return ans;
+    }
+};
+
+int main(){
+    /*===========================Test case============================*/
+    vector<vector<vector<int>>> test;
+    test.push_back({{1, 3}, {2, 6}, {8, 10}, {15, 18}});
+    test.push_back({{}});                               //empty entry
+    test.push_back({{1, 10}, {2, 9}});                  //one include another
+    test.push_back({{1, 10}, {1, 10}});                 //equal
+    test.push_back({{1, 10}, {1, 5}, {5, 10}});         //one include multi
+    test.push_back({{1, 2}, {5, 6}});                   //no overlapping
+    test.push_back({{2, 1}});                           //illegal input
+    /*========================End test case===========================*/
+    auto start = system_clock::now();
+    /*============================API call============================*/
+    for(auto &t:test){
+        for(auto ans:Solution::merge(t)){
+            if(!ans.empty()) cout<<"["<<ans[0]<<", "<<ans[1]<<"], ";
+            else cout<<"[]";
+        }
+        cout<<endl;
+    }
+
+    /*========================End of API call=========================*/
+    auto end = system_clock::now();
+    auto duration =
+            duration_cast<microseconds>(end-start);
+    cout<<"Program spent "
+        <<duration.count()
+        <<" us"
+        <<endl;
+    return 0;
+}
+
+执行用时 :
+64 ms, 在所有 C++ 提交中击败了25.62%的用户
+内存消耗 :
+11.1 MB, 在所有 C++ 提交中击败了100.00%的用户
