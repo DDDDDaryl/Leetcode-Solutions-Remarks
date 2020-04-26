@@ -1,0 +1,105 @@
+#include <iostream>
+#include <chrono>
+#include <vector>
+#include <algorithm>
+#include <deque>
+#include <list>
+#include <forward_list>
+#include <array>
+#include <stack>
+#include <map>
+#include <random>
+#include <queue>
+#include <unordered_map>
+#include <unordered_set>
+using namespace std;
+using namespace std::chrono;
+
+/*给定一个非空的整数数组，返回其中出现频率前 k 高的元素。
+
+ 
+
+示例 1:
+
+输入: nums = [1,1,1,2,2,3], k = 2
+输出: [1,2]
+示例 2:
+
+输入: nums = [1], k = 1
+输出: [1]
+ 
+
+提示：
+
+你可以假设给定的 k 总是合理的，且 1 ≤ k ≤ 数组中不相同的元素的个数。
+你的算法的时间复杂度必须优于 O(n log n) , n 是数组的大小。
+题目数据保证答案唯一，换句话说，数组中前 k 个高频元素的集合是唯一的。
+你可以按任意顺序返回答案。
+
+来源：力扣（LeetCode）
+链接：https://leetcode-cn.com/problems/top-k-frequent-elements
+著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。*/
+
+/*必须优于NlogN是不能排序的意思？
+ * 那么就牺牲空间复杂度创造优先队列*/
+ 
+ //解题过程中出现的问题：
+ //不清楚关联容器的使用，尤其是multi前缀的
+ //lambda函数在队列适配器声明中的使用！！尖括号中需声明类型！！
+ //需要了解队列适配器的初始化
+ //以及：优先队列默认为大根堆，<符合返回true时sink，因此是大根堆
+
+class Solution {
+public:
+    static vector<int> topKFrequent(vector<int>& nums, int k) {
+        vector<int> ans;
+        unordered_map<int, size_t> cnt;
+        for(auto num:nums) ++cnt[num];
+//        for(auto n:cnt) cout<<"key: "<<n.first<<' '<<"count: "<<n.second<<endl;
+        auto rule = [&](const int& a, const int& b){return cnt[a] > cnt[b];};
+        priority_queue<int, vector<int>, decltype(rule)> heap(rule);
+        for(auto &ptr : cnt){
+            if(heap.size()>=k && ptr.second>cnt[heap.top()]){
+                heap.pop();
+                heap.push(ptr.first);
+            }
+            else if(heap.size()<k) heap.push(ptr.first);
+//            cout<<"top:" <<heap.top()<<endl;
+        }
+        while(!heap.empty()){
+           ans.push_back(heap.top());
+           heap.pop();
+        }
+        return ans;
+    }
+
+};
+
+int main(){
+    /*===========================Test case============================*/
+    vector<pair<vector<int>, int>> test{{{5,3,1,1,1,3,73,1}, 2},
+                                        {{1}, 1},
+                                        {{3, 2, 3, 1, 2, 4, 5, 5, 6, 3}, 1},
+                                        {{3,4,1,4},1},
+                                        {{3,0,1,0},1}};
+
+    /*========================End test case===========================*/
+    auto start = system_clock::now();
+    /*============================API call============================*/
+    for(auto &t:test){
+        for(auto &n:Solution::topKFrequent(t.first, t.second)){
+            cout<<n<<", ";
+        }
+        cout<<endl;
+    }
+    /*========================End of API call=========================*/
+    auto end = system_clock::now();
+    auto duration =
+            duration_cast<microseconds>(end-start);
+    cout<<"Program spent "
+        <<duration.count()
+        <<" us"
+        <<endl;
+    return 0;
+}
+
