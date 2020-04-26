@@ -1,0 +1,100 @@
+#include <iostream>
+#include <chrono>
+#include <vector>
+#include <algorithm>
+#include <deque>
+#include <list>
+#include <forward_list>
+#include <array>
+#include <stack>
+#include <map>
+#include <random>
+#include <queue>
+using namespace std;
+using namespace std::chrono;
+
+/*在未排序的数组中找到第 k 个最大的元素。请注意，你需要找的是数组排序后的第 k 个最大的元素，而不是第 k 个不同的元素。
+
+示例 1:
+
+输入: [3,2,1,5,6,4] 和 k = 2
+输出: 5
+示例 2:
+
+输入: [3,2,3,1,2,4,5,5,6] 和 k = 4
+输出: 4
+说明:
+
+你可以假设 k 总是有效的，且 1 ≤ k ≤ 数组的长度。
+
+来源：力扣（LeetCode）
+链接：https://leetcode-cn.com/problems/kth-largest-element-in-an-array
+著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。*/
+
+//调用库函数两行写完的代码似乎空间复杂度高？毕竟没读过标准库。
+//分析：本题不需要稳定排序算法，因此可以选择快速排序和堆排序
+//然而排序操作实际上浪费了很多时间：因为我们只是要找第k大
+
+//三种解法：1.暴力 2.堆（我这里为了练习手写堆排序，原地排序），也可以牺牲
+//空间复杂度，用额外的size为k的堆保存数据；或者直接priority queue
+//3.采用快速排序的分割法，
+
+class Solution {
+public:
+    static int findKthLargest(vector<int>& nums, int k) {
+        if(nums.empty()) return -1;
+        int kth;
+        nums.push_back(0);
+        reverse(nums.begin(), nums.end());
+        for(unsigned i=(nums.size()-1)/2; i>=1; --i){
+            sink(nums, i);
+        }
+//        for(auto t:nums) cout<<t;
+//        cout<<endl;
+        for(int j=1; j<=k; ++j){
+            swap(nums[1], nums.back());
+            kth = nums.back();
+//            cout<<"current max = "<<kth<<endl;
+            nums.pop_back();
+            sink(nums, 1);
+        }
+        return kth;
+    }
+private:
+    static void sink(vector<int>& nums, unsigned cur){
+        while(2*cur < nums.size()){
+            unsigned child = 2*cur;
+            if(child+1<nums.size() && nums[child]<nums[child+1]) ++child;
+            if(nums[cur] >= nums[child]) break;
+            swap(nums[cur], nums[child]);
+            cur = child;
+        }
+
+    }
+};
+
+int main(){
+    /*===========================Test case============================*/
+    vector<pair<vector<int>, int>> test{{{1, 2, 3, 4}, 2},
+                                        {{3, 2, 1, 5, 6, 4}, 2},
+                                        {{3, 2, 3, 1, 2, 4, 5, 5, 6}, 4},
+                                        {{2,2,2,2,2},2},
+                                        {{6,7,5,4,3,2,1},2}};
+
+    /*========================End test case===========================*/
+    auto start = system_clock::now();
+    /*============================API call============================*/
+    for(auto &t:test){
+        cout<<Solution::findKthLargest(t.first, t.second)<<endl;
+    }
+    /*========================End of API call=========================*/
+    auto end = system_clock::now();
+    auto duration =
+            duration_cast<microseconds>(end-start);
+    cout<<"Program spent "
+        <<duration.count()
+        <<" us"
+        <<endl;
+    return 0;
+}
+
