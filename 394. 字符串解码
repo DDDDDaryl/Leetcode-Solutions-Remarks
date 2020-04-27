@@ -1,0 +1,99 @@
+#include <iostream>
+#include <sstream>
+#include <chrono>
+#include <vector>
+#include <algorithm>
+#include <deque>
+#include <list>
+#include <forward_list>
+#include <array>
+#include <stack>
+#include <map>
+#include <random>
+#include <queue>
+#include <unordered_map>
+#include <unordered_set>
+#include <cctype>
+using namespace std;
+using namespace std::chrono;
+
+/*给定一个经过编码的字符串，返回它解码后的字符串。
+编码规则为: k[encoded_string]，表示其中方括号内部的 encoded_string 正好重复 k 次。注意 k 保证为正整数。
+你可以认为输入字符串总是有效的；输入字符串中没有额外的空格，且输入的方括号总是符合格式要求的。
+此外，你可以认为原始数据不包含数字，所有的数字只表示重复的次数 k ，例如不会出现像 3a 或 2[4] 的输入。
+示例:
+s = "3[a]2[bc]", 返回 "aaabcbc".
+s = "3[a2[c]]", 返回 "accaccacc".
+s = "2[abc]3[cd]ef", 返回 "abcabccdcdcdef".
+来源：力扣（LeetCode）
+链接：https://leetcode-cn.com/problems/decode-string
+著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。*/
+
+/*总是先解码内层括号，类似乘法运算
+ * 既然又涉及到括号匹配，那么率先考虑使用栈
+ * 忽略左边直接找右括号，找到右括号再进行处理，每处理一组括号之后对这对括号左侧的数字进行处理
+ * 除了对左侧数字进行处理之外，还要处理其他字母，直到向左遇到括号
+ * 如果向左遇到的括号是左括号，那么跳过已处理完的部分向右，如果遇到的时右括号，那么之前应该已经处理完毕，继续向右
+ * 直到所有括号处理完毕，向右碰到空字符
+ *
+ * 递归，每次碰到括号都要先处理括号里的操作
+ *
+ * 总结：两种解法，辅助栈和递归，其实也是一种解法，辅助栈只是手写了栈用来代替递归时的栈*/
+
+class Solution {
+public:
+    static string decodeString(string s) {
+        auto left = s.begin();
+        auto right = s.end();
+        return calInside(left, right).first;
+    }
+
+private:
+    static pair<string, string::iterator> calInside(string::iterator l, string::iterator r){
+        if(*l == ']') return {};
+        string tmp_alpha;
+        string tmp_digit;
+        auto insA = back_inserter(tmp_alpha);
+//        stack<string::iterator> stk;
+        while(l!=r && *l != ']'){
+            if (isdigit(*l)) tmp_digit.push_back(*l);
+            else if (isalpha(*l)) insA = *l;
+            else if (*l == '[') {
+                auto tmp = calInside(l+1, r);
+                for(int i=0; i<stoi(tmp_digit); ++i)
+                    tmp_alpha += tmp.first;
+                tmp_digit.clear();
+                l = tmp.second;
+            }
+            else if (*l == ']') tmp_alpha += tmp_alpha;
+            ++l;
+        }
+        return make_pair(tmp_alpha, l);
+    }
+
+};
+
+int main(){
+    /*===========================Test case============================*/
+    vector<string> test{"3[apple]3[beta]",
+                        "2[a3[b]]",
+                        "abc",
+                        "3[a]bc"};
+
+    /*========================End test case===========================*/
+    auto start = system_clock::now();
+    /*============================API call============================*/
+    for(auto& t:test){
+        cout<<Solution::decodeString(t)<<endl;
+    }
+    /*========================End of API call=========================*/
+    auto end = system_clock::now();
+    auto duration =
+            duration_cast<microseconds>(end-start);
+    cout<<"Program spent "
+        <<duration.count()
+        <<" us"
+        <<endl;
+    return 0;
+}
+
